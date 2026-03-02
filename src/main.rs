@@ -1,13 +1,11 @@
 fn main() {
+    let ma_nouvelle_tache = create_task("Maîtriser le Rust");
     
-    let name = "Utilisateur";
-    let app_name = "Task-CLI";
+    println!("[Notification] {}", ma_nouvelle_tache);
+}
 
-   
-    println!("   {}", app_name);
-    println!("   Bienvenue, {} !", name);
+fn create_task(titre: &str) -> String {
+    println!("Création d'une nouvelle tâche en cours...");
     
-    println!("\nVoici vos tâches du jour :");
-    println!("1. Apprendre les bases de Rust");
-    println!("2. Configurer votre environnement");
+    format!("Nouvelle tâche : {}", titre)
 }
