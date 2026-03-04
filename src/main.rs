@@ -197,7 +197,9 @@ fn main() {
         task.display();
     }
 }
-*/
+
+
+            //8.3
 
 use std::io; 
 struct Task {
@@ -263,4 +265,84 @@ fn main() {
     for task in &list {
         task.display();
     }
+}*/
+
+            //10.4
+
+use std::io; 
+struct Task {
+    id: u32,
+    title: String,
+    completed: bool,
+}
+
+impl Task {
+    fn new(id: u32, title: String) -> Task {
+        Task {
+            id,
+            title,
+            completed: false,
+        }
+    }
+
+    
+    fn display(&self) {
+        let check = if self.completed { "Complété" } else { "En Cours" };
+        println!("{} - {} - {}",self.id, self.title, check);
+    }
+}
+
+fn main() {
+    let mut list: Vec<Task> = Vec::new();
+    let mut id = 1;
+
+    println!("BIENVENUE DANS TASK-CLI");
+
+    loop {
+        println!("\nEntrez une nouvelle tâche, son ID pour la modifier ou 'liste' pour voir la liste des tâches 
+        (ou tapez 'quitter' pour partir) :");
+
+        
+        let mut saisie = String::new();
+        io::stdin()
+            .read_line(&mut saisie)
+            .expect("Erreur de lecture");
+
+        let titre = saisie.trim();
+
+        
+        if titre == "quitter" {
+            break;
+        }
+
+        else if titre == "liste" {
+            println!("\nListe de Tâches : ");
+            for task in &list {
+            task.display();
+            }
+        }
+
+        else if let Ok(id_validation) = titre.parse::<u32>() {
+            for task in &mut list {
+            if task.id == id_validation {
+                task.completed = true;
+                println!("Tâche n°{} terminée !", id_validation);
+            }
+        }
+        }
+
+        else if !titre.is_empty() {
+            
+            let nouvelle_tache = Task::new(id, titre.to_string());
+            list.push(nouvelle_tache);
+            
+            println!("Tâche ajoutée !");
+            id += 1; 
+        } else {
+            println!("Le titre ne peut pas être vide.");
+        }
+    }
+
+    
+    
 }
