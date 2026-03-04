@@ -1,4 +1,4 @@
-// 3.4
+        // 3.4
 
 /*fn main() {
     
@@ -14,7 +14,7 @@
     println!("2. Configurer votre environnement");
 }
 
-// 4.1
+        // 4.1
 
 /*fn main() {
     let a = 0;
@@ -29,7 +29,7 @@ fn main() {
     let space = space.len();
 }
 
-//4.4
+        //4.4
 
 fn main() {
 
@@ -41,7 +41,7 @@ titre_tache = "Maîtriser le Rust";
 println!("Ma tâche actuelle est : {}", titre_tache);
 }
 
-//5.3
+        //5.3
 
 fn main() {
     afficher_bienvenue();
@@ -65,7 +65,7 @@ fn afficher_tache(id: i32, titre: &str) {
     println!("[Tâche #{}] : {}", id, titre);
 }
 
-//5.4
+        //5.4
 
 fn main() {
     let ma_nouvelle_tache = create_task("Maîtriser le Rust");
@@ -79,7 +79,7 @@ fn create_task(titre: &str) -> String {
     format!("Nouvelle tâche : {}", titre)
 }
 
-//6.1
+        //6.1
 
 fn main() {
     let a = 1;
@@ -92,7 +92,7 @@ fn main() {
 
 }
 
-//6.2
+        //6.2
 
 fn main() {
     let position = "2eme";
@@ -105,9 +105,9 @@ match position {
 }
 }
 
-//6.3
+        //6.3
 
-//6.4
+        //6.4
 
 use std::io; 
 
@@ -130,9 +130,9 @@ fn main() {
         println!("Voici la liste des tâches enregistrées : ");
         println!("1. {}", titre);
     }
-}*/
+}
 
-// 7.4
+        // 7.4, fin du module 1, code complet de ce module
 
 use std::io; 
 struct Task {
@@ -197,4 +197,70 @@ fn main() {
         task.display();
     }
 }
+*/
 
+use std::io; 
+struct Task {
+    id: u32,
+    title: String,
+    completed: bool,
+}
+
+impl Task {
+    fn new(id: u32, title: String) -> Task {
+        Task {
+            id,
+            title,
+            completed: false,
+        }
+    }
+
+    
+    fn display(&self) {
+        let check = if self.completed { "Complété" } else { "En Cours" };
+        println!("{} - {} - {}",self.id, self.title, check);
+    }
+}
+
+fn main() {
+    let mut list: Vec<Task> = Vec::new();
+    let mut id = 1;
+
+    println!("BIENVENUE DANS TASK-CLI");
+
+    loop {
+        println!("\nEntrez une nouvelle tâche (ou tapez 'quitter' pour voir la liste et partir) :");
+
+        
+        let mut saisie = String::new();
+        io::stdin()
+            .read_line(&mut saisie)
+            .expect("Erreur de lecture");
+
+        let titre = saisie.trim();
+
+        
+        if titre == "quitter" {
+            break;
+        }
+
+        if !titre.is_empty() {
+
+            let titre = titre.to_string();
+            
+            let nouvelle_tache = Task::new(id, titre);
+            list.push(nouvelle_tache);
+            
+            println!("Tâche {} ajoutée !", titre);
+            id += 1; 
+        } else {
+            println!("Le titre ne peut pas être vide.");
+        }
+    }
+
+    
+    println!("\nListe de Tâches : ");
+    for task in &list {
+        task.display();
+    }
+}
