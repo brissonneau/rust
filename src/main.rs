@@ -535,7 +535,7 @@ fn main() {
 }
     
 
-*/
+
             //14.3
 
 use std::io; 
@@ -649,6 +649,274 @@ fn main() {
             id += 1; 
         } else {
             println!("Le titre ne peut pas être vide.");
+        }
+    }
+
+    
+    
+}
+
+            //16.1
+
+use std::io;
+
+enum Status {
+    Pending,
+    Done,
+}
+struct Task {
+    id: u32,
+    title: String,
+    status: Status,
+}
+
+impl Task {
+    fn new(id: u32, title: String) -> Task {
+        Task {
+            id,
+            title,
+            status: Status::Pending,
+        }
+    }
+    
+
+    
+    fn display(&self) {
+        let check = match self.status {
+            Status::Pending => "En Cours",
+            Status::Done => "Complété",
+        };
+        println!("{} - {} - {}",self.id, self.title, check);
+    }
+}
+
+fn trouver_tache<'a>(liste: &'a Vec<Task>, id_recherche: u32) -> Option<&'a Task> {
+    for task in liste {
+        if task.id == id_recherche {
+            return Some(task); 
+        }
+    }
+    None
+}
+
+fn main() {
+    let mut list: Vec<Task> = Vec::new();
+    let mut id = 1;
+
+    println!("BIENVENUE DANS TASK-CLI");
+
+    loop {
+        println!("\nEntrez une nouvelle tâche, son ID pour la modifier, 'suppr ID' pour la supprimer ou 'liste' pour voir la liste des tâches 
+        (ou tapez 'quitter' pour partir) :");
+
+        
+        let mut saisie = String::new();
+        io::stdin()
+            .read_line(&mut saisie)
+            .expect("Erreur de lecture");
+
+        let titre = saisie.trim();
+
+        
+        if titre == "quitter" {
+            break;
+        }
+
+        else if saisie.starts_with("suppr ") {
+            let reste = saisie.replace("suppr ", "");
+
+        
+            
+            
+            match reste.trim().parse::<u32>() {
+                Ok(id_a_supprimer) => {
+                    list.retain(|t| t.id != id_a_supprimer);
+                    println!("Tâche n°{} supprimée !", id_a_supprimer);
+                }
+                Err(_) => {
+                    println!("Erreur : Veuillez entrer un ID valide après 'suppr'");
+                }
+            }
+        }
+
+        else if saisie.starts_with("voir ") {
+            let id_str = saisie.replace("voir ", "");
+            if let Ok(id_cible) = id_str.trim().parse::<u32>() {
+                if let Some(tache) = trouver_tache(&list, id_cible) {
+                    print!("Focus sur : ");
+                    tache.display();
+                } else {
+                    println!("ID {} introuvable.", id_cible);
+                }
+            }
+        }
+
+
+        else if titre == "liste" {
+            println!("\nListe de Tâches : ");
+            for task in &list {
+            task.display();
+            }
+        }
+
+        else if let Ok(id_validation) = titre.parse::<u32>() {
+            for task in &mut list {
+            if task.id == id_validation {
+                task.status = Status::Done;
+                println!("Tâche n°{} terminée !", id_validation);
+            }
+        }
+        }
+
+        else if !titre.is_empty() {
+            
+            let nouvelle_tache = Task::new(id, titre.to_string());
+            list.push(nouvelle_tache);
+            
+            println!("Tâche ajoutée !");
+            id += 1; 
+        } else {
+            println!("Le titre ne peut pas être vide.");
+        }
+        
+    }
+
+    
+    
+}*/
+
+            // 17.1 + 17.3
+use std::io;
+
+enum Status {
+    Pending,
+    Done,
+}
+struct Task {
+    id: u32,
+    title: String,
+    status: Status,
+}
+
+impl Task {
+    fn new(id: u32, title: String) -> Task {
+        Task {
+            id,
+            title,
+            status: Status::Pending,
+        }
+    }
+    
+
+    
+    fn display(&self) {
+        let check = match self.status {
+            Status::Pending => "En Cours",
+            Status::Done => "Complété",
+        };
+        println!("{} - {} - {}",self.id, self.title, check);
+    }
+}
+
+fn trouver_tache<'a>(liste: &'a Vec<Task>, id_recherche: u32) -> Option<&'a Task> {
+    for task in liste {
+        if task.id == id_recherche {
+            return Some(task); 
+        }
+    }
+    None
+}
+
+fn chercher_tache<'a>(liste: &'a [Task], mot_cle: &str) -> Option<&'a Task> {
+    for task in liste {
+        if task.title == mot_cle {
+            return Some(task); 
+        }
+    }
+    None 
+}
+
+fn main() {
+    let mut list: Vec<Task> = Vec::new();
+    let mut id = 1;
+
+    println!("BIENVENUE DANS TASK-CLI");
+
+    loop {
+        println!("\nEntrez une nouvelle tâche, son ID pour la modifier, 'suppr ID' pour la supprimer ou 'liste' pour voir la liste des tâches 
+        (ou tapez 'quitter' pour partir) :");
+
+        
+        let mut saisie = String::new();
+        io::stdin()
+            .read_line(&mut saisie)
+            .expect("Erreur de lecture");
+
+        let titre = saisie.trim();
+
+        
+        match titre {
+            "quitter" => break,
+            
+            "liste" => {
+                println!("\nListe de Tâches : ");
+                for task in &list {
+                    match task {
+                        Task { id, title, status: Status::Done } => println!("[TERMINEE] №{} : {}", id, title),
+                        Task { id, title, status: Status::Pending } => println!("[EN COURS] №{} : {}", id, title),
+                    }
+                }
+            }
+
+            s if s.starts_with("chercher ") => {
+            let reste = s.replace("chercher ", "");
+            
+                match chercher_tache(&list, reste.trim()) {
+                    Some(tache) => {
+                        println!("Trouvé ! Voici le détail :");
+                        tache.display();
+                    },
+                    None => println!("Désolé, aucune tâche ne s'appelle '{}'.", reste.trim()),
+                }
+            }
+
+            s if s.starts_with("suppr ") => {
+                let reste = s.replace("suppr ", "");
+                if let Ok(id_a_supprimer) = reste.trim().parse::<u32>() {
+                    list.retain(|t| t.id != id_a_supprimer);
+                    println!("Tâche n°{} supprimée !", id_a_supprimer);
+                }
+            }
+
+            s if s.starts_with("voir ") => {
+                let reste = s.replace("voir ", "");
+                if let Ok(id_cible) = reste.trim().parse::<u32>() {
+                    if let Some(tache) = trouver_tache(&list, id_cible) {
+                        print!("Focus sur : ");
+                        tache.display();
+                    } else {
+                        println!("ID {} introuvable.", id_cible);
+                    }
+                }
+            }
+
+            s if s.parse::<u32>().is_ok() => {
+                let id_val = s.parse::<u32>().unwrap();
+                for task in &mut list {
+                    if task.id == id_val {
+                        task.status = Status::Done;
+                        println!("Tâche n°{} terminée !", id_val);
+                    }
+                }
+            }
+
+            s if !s.is_empty() => {
+                list.push(Task::new(id, s.to_string()));
+                println!("Tâche ajoutée !");
+                id += 1;
+            }
+
+            _ => println!("Le titre ne peut pas être vide."),
         }
     }
 
