@@ -43,3 +43,22 @@ pub fn valider_titre(titre: &str) -> Result<String, String> {
         Ok(titre.to_string())
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validation_titre_trop_court() {
+        let resultat = valider_titre("ab");
+        assert!(resultat.is_err()); 
+    }
+
+    #[test]
+    fn test_validation_titre_valide() {
+        let resultat = valider_titre("Apprendre Rust");
+        assert!(resultat.is_ok());
+        assert_eq!(resultat.unwrap(), "Apprendre Rust");
+    }
+}

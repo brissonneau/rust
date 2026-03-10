@@ -26,3 +26,19 @@ impl Task {
         println!("{} - {} - {}", self.id, self.title, check);
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*; 
+
+    #[test]
+    fn test_nouvelle_tache_est_pending() {
+        let t = Task::new(1, "Apprendre les tests".to_string());
+        assert_eq!(t.id, 1);
+        match t.status {
+            Status::Pending => assert!(true),
+            _ => panic!("La tâche devrait être en attente !"),
+        }
+    }
+}
