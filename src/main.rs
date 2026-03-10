@@ -1437,7 +1437,7 @@ fn main() {
     
     }
     sauvegarder(&list).expect("Erreur de sauvegarde");
-}*/
+}
 
             //22.1
 
@@ -1609,4 +1609,110 @@ fn main() {
     
     }
     sauvegarder(&list).expect("Erreur de sauvegarde");
+}
+*/
+
+        //23.1
+
+mod models;
+mod logic;
+
+use std::io;
+use models::{Task, Status};
+use std::collections::HashMap;
+
+
+fn executer_commande(titre: &str, list: &mut HashMap<u32, Task>, id: &mut u32) -> Result<(), String> {
+    match titre {
+
+        "liste" => {
+            println!("\nListe de Tâches : ");
+            for task in list.values() {
+                match task {
+                    Task { id, title, status: Status::Done } => println!("[TERMINEE] №{} : {}", id, title),
+                    Task { id, title, status: Status::Pending } => println!("[EN COURS] №{} : {}", id, title),
+                }
+            }
+            Ok(())
+        }
+
+
+        s if s.starts_with("suppr ") => {
+            let reste = s.replace("suppr ", "");
+            let id_a_suppr = reste.trim().parse::<u32>().map_err(|_| "ID invalide")?;
+            if list.remove(&id_a_suppr).is_some() {
+                println!("Tâche n°{} supprimée !", id_a_suppr);
+            } else {
+                println!("ID introuvable.");
+            }
+            Ok(())
+        }
+
+        s if s.starts_with("voir ") => {
+            let reste = s.replace("voir ", "");
+            let id_cible = reste.trim().parse::<u32>().map_err(|_| "ID invalide")?;
+            if let Some(tache) = list.get(&id_cible) {
+                tache.display();
+            } else {
+                return Err(format!("ID {} introuvable.", id_cible)); 
+            }
+            Ok(())
+        }
+
+        s if s.parse::<u32>().is_ok() => {
+            let id_val = s.parse::<u32>().unwrap();
+            if let Some(task) = list.get_mut(&id_val) {
+                task.status = Status::Done;
+                println!("Tâche n°{} terminée !", id_val);
+            } else {
+                println!("ID {} inconnu.", id_val);
+            }
+            Ok(())
+        }
+
+        s if !s.is_empty() => {
+            let titre_valide = logic::valider_titre(s)?; 
+            if list.is_empty() {
+                    *id = 1;
+                }
+            let nouvelle = Task::new(*id, titre_valide);
+            list.insert(*id, nouvelle);
+            println!("Tâche ajoutée avec l'ID {} !", id);
+            *id += 1;
+            Ok(())
+        }
+
+        _ => Err(String::from("Le titre ne peut pas être vide.")),
+    }
+}
+
+fn main() {
+    let mut list: HashMap<u32, Task> = logic::charger().unwrap_or_else(|_| HashMap::new());
+    let mut id = list.keys().max().unwrap_or(&0) + 1;
+    
+
+    println!("BIENVENUE DANS TASK-CLI");
+
+    loop {
+        println!("\nEntrez une nouvelle tâche, son ID pour la modifier, 'suppr ID' pour la supprimer ou 'liste' pour voir la liste des tâches 
+        (ou tapez 'quitter' pour partir) :");
+
+        
+        let mut saisie = String::new();
+        io::stdin()
+            .read_line(&mut saisie)
+            .expect("Erreur de lecture");
+
+        let titre = saisie.trim();
+
+        
+        if titre == "quitter"{
+            break;
+        }
+        if let Err(message_erreur) = executer_commande(titre, &mut list, &mut id) {
+            println!("ERREUR : {}", message_erreur);
+    }
+    
+    }
+    logic::sauvegarder(&list).expect("Erreur de sauvegarde");
 }
