@@ -1610,9 +1610,9 @@ fn main() {
     }
     sauvegarder(&list).expect("Erreur de sauvegarde");
 }
-*/
 
-        //23.1
+
+        //23.1 + /// du 27.1
 
 mod models;
 mod logic;
@@ -1621,7 +1621,22 @@ use std::io;
 use models::{Task, Status};
 use std::collections::HashMap;
 
-
+/// Gère l'exécution des commandes saisies par l'utilisateur.
+///
+/// Cette fonction analyse la chaîne de caractères 'titre' pour déterminer l'action à entreprendre :
+/// - **"liste"** : Affiche toutes les tâches présentes.
+/// - **"suppr ID"** : Supprime la tâche correspondant à l'ID fourni.
+/// - **"voir ID"** : Affiche les détails d'une tâche spécifique.
+/// - **Nombre (ID)** : Marque la tâche correspondante comme terminée (Done).
+/// - **Texte libre** : Crée une nouvelle tâche avec ce texte comme titre.
+///
+/// # Arguments
+/// * 'titre' - La commande brute saisie par l'utilisateur.
+/// * 'list' - Une référence mutable vers la HashMap contenant les tâches.
+/// * 'id' - Une référence mutable vers le compteur d'ID pour les nouvelles tâches.
+///
+/// # Erreurs
+/// Retourne un 'String' contenant le message d'erreur si la commande est invalide ou si l'ID n'existe pas.
 fn executer_commande(titre: &str, list: &mut HashMap<u32, Task>, id: &mut u32) -> Result<(), String> {
     match titre {
 
@@ -1686,10 +1701,16 @@ fn executer_commande(titre: &str, list: &mut HashMap<u32, Task>, id: &mut u32) -
     }
 }
 
+/// Point d'entrée principal de l'application.
+///
+/// Cette fonction initialise la liste des tâches en la chargeant depuis le fichier,
+/// gère la boucle principale d'interaction avec l'utilisateur et assure
+/// la sauvegarde des données avant la fermeture.
+
 fn main() {
     let mut list: HashMap<u32, Task> = logic::charger().unwrap_or_else(|_| HashMap::new());
     let mut id = list.keys().max().unwrap_or(&0) + 1;
-    
+
 
     println!("BIENVENUE DANS TASK-CLI");
 
@@ -1699,9 +1720,154 @@ fn main() {
 
         
         let mut saisie = String::new();
+        
         io::stdin()
             .read_line(&mut saisie)
             .expect("Erreur de lecture");
+
+        let titre = saisie.trim();
+
+        
+        if titre == "quitter"{
+            break;
+        }
+        if let Err(message_erreur) = executer_commande(titre, &mut list, &mut id) {
+            println!("ERREUR : {}", message_erreur);
+    }
+    
+    }
+    logic::sauvegarder(&list).expect("Erreur de sauvegarde");
+}
+*/
+        //28.1 et 28.2
+mod models;
+mod logic;
+
+use std::io;
+use models::{Task, Status};
+use std::collections::HashMap;
+
+/// Gère l'exécution des commandes saisies par l'utilisateur.
+///
+/// Cette fonction analyse la chaîne de caractères 'titre' pour déterminer l'action à entreprendre :
+/// - **"liste"** : Affiche toutes les tâches présentes.
+/// - **"suppr ID"** : Supprime la tâche correspondant à l'ID fourni.
+/// - **"voir ID"** : Affiche les détails d'une tâche spécifique.
+/// - **Nombre (ID)** : Marque la tâche correspondante comme terminée (Done).
+/// - **Texte libre** : Crée une nouvelle tâche avec ce texte comme titre.
+///
+/// # Arguments
+/// * 'titre' - La commande brute saisie par l'utilisateur.
+/// * 'list' - Une référence mutable vers la HashMap contenant les tâches.
+/// * 'id' - Une référence mutable vers le compteur d'ID pour les nouvelles tâches.
+///
+/// # Erreurs
+/// Retourne un 'String' contenant le message d'erreur si la commande est invalide ou si l'ID n'existe pas.
+fn executer_commande(titre: &str, list: &mut HashMap<u32, Task>, id: &mut u32) -> Result<(), String> {
+    match titre {
+
+        "liste" => {
+            println!("\nListe de Tâches : ");
+            for task in list.values() {
+                match task {
+                    Task { id, title, status: Status::Done } => println!("[TERMINEE] №{} : {}", id, title),
+                    Task { id, title, status: Status::Pending } => println!("[EN COURS] №{} : {}", id, title),
+                }
+            }
+            Ok(())
+        }
+
+
+        s if s.starts_with("suppr ") => {
+            let reste = s.replace("suppr ", "");
+            let id_a_suppr = reste.trim().parse::<u32>().map_err(|_| "ID invalide")?;
+            if list.remove(&id_a_suppr).is_some() {
+                println!("Tâche n°{} supprimée !", id_a_suppr);
+            } else {
+                println!("ID introuvable.");
+            }
+            Ok(())
+        }
+
+        s if s.starts_with("voir ") => {
+            let reste = s.replace("voir ", "");
+            let id_cible = reste.trim().parse::<u32>().map_err(|_| "ID invalide")?;
+            if let Some(tache) = list.get(&id_cible) {
+                tache.display();
+            } else {
+                return Err(format!("ID {} introuvable.", id_cible)); 
+            }
+            Ok(())
+        }
+
+        s if s.chars().all(|c| c.is_numeric()) && !s.is_empty() => {
+            match s.parse::<u32>() {
+                Ok(id_val) => {
+                    if let Some(task) = list.get_mut(&id_val) {
+                        task.status = Status::Done;
+                        println!(" Tâche n°{} marquée comme terminée !", id_val);
+                    } else {
+                        println!(" L'ID {} n'existe pas dans votre liste.", id_val);
+                    }
+                }
+                Err(_) => println!("'{}' n'est pas un nombre valide.", s),
+            }
+            Ok(())
+        }
+
+        s if !s.is_empty() => {
+            let titre_valide = logic::valider_titre(s)?; 
+            if list.is_empty() {
+                    *id = 1;
+                }
+            let nouvelle = Task::new(*id, titre_valide);
+            list.insert(*id, nouvelle);
+            println!("Tâche ajoutée avec l'ID {} !", id);
+            *id += 1;
+            Ok(())
+        }
+
+        _ => Err(String::from(
+            "Commande non reconnue.\n\
+            Astuce : tapez 'liste' pour voir vos tâches ou un titre pour en ajouter une."
+        )),
+    }
+}
+
+/// Point d'entrée principal de l'application.
+///
+/// Cette fonction initialise la liste des tâches en la chargeant depuis le fichier,
+/// gère la boucle principale d'interaction avec l'utilisateur et assure
+/// la sauvegarde des données avant la fermeture.
+use std::env;
+fn main() {
+    let mut list: HashMap<u32, Task> = logic::charger().unwrap_or_else(|_| HashMap::new());
+    let mut id = list.keys().max().unwrap_or(&0) + 1;
+
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() > 1 {
+        let commande = args[1..].join(" "); 
+        if let Err(e) = executer_commande(&commande, &mut list, &mut id) {
+            println!("ERREUR : {}", e);
+        }
+        let _ = logic::sauvegarder(&list);
+        return; 
+    }
+
+    println!("BIENVENUE DANS TASK-CLI");
+
+    loop {
+        println!("\nEntrez une nouvelle tâche, son ID pour la modifier, 'suppr ID' pour la supprimer ou 'liste' pour voir la liste des tâches 
+        (ou tapez 'quitter' pour partir) :");
+
+        
+        let mut saisie = String::new();
+        
+        if let Err(_) = io::stdin().read_line(&mut saisie) {
+            println!("❌ Impossible de lire votre saisie. Essayez de redémarrer le programme.");
+            continue;
+        }
 
         let titre = saisie.trim();
 
